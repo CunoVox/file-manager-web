@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
 import { HaoBoxLogo } from "../brand/haobox-logo";
@@ -32,6 +32,8 @@ type NavItem = {
   label: string;
   end?: boolean;
 };
+
+type SidebarMode = "user" | "admin";
 
 const workspaceItems: NavItem[] = [
   { to: "/files", Icon: Files, label: "My Files" },
@@ -51,7 +53,9 @@ const adminItems: NavItem[] = [
 export function AppShell() {
   const { user, refreshToken, clearSession, updateUser } = useAuthStore();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [sidebarMode, setSidebarMode] = useState<SidebarMode>("user");
   const client = useQueryClient();
+  const location = useLocation();
   const navigate = useNavigate();
   const isAdmin = user?.roles.includes("ADMIN") ?? false;
   const initials = user?.fullName.slice(0, 2).toUpperCase() ?? "HV";
@@ -65,6 +69,14 @@ export function AppShell() {
         // The API interceptor handles expired sessions; the shell can keep rendering meanwhile.
       });
   }, [updateUser]);
+
+  useEffect(() => {
+    if (!isAdmin) {
+      setSidebarMode("user");
+      return;
+    }
+    setSidebarMode(location.pathname.startsWith("/admin") ? "admin" : "user");
+  }, [isAdmin, location.pathname]);
 
   const notifications = useQuery({
     queryKey: ["notifications"],
@@ -107,6 +119,11 @@ export function AppShell() {
     });
   }
 
+  function handleSidebarModeChange(mode: SidebarMode) {
+    setSidebarMode(mode);
+    navigate(mode === "admin" ? "/admin/dashboard" : "/files");
+  }
+
   return (
     <div className="min-h-screen bg-canvas text-ink md:flex md:h-screen md:overflow-hidden">
       <aside className="hidden w-72 shrink-0 border-r border-line bg-white md:flex md:h-screen md:flex-col">
@@ -115,9 +132,17 @@ export function AppShell() {
           <ProfileCard user={user} initials={initials} />
         </div>
 
-        <nav className="flex-1 space-y-7 overflow-y-auto p-4">
-          <NavSection title="Workspace" items={workspaceItems} />
-          {isAdmin && <NavSection title="Administration" items={adminItems} />}
+        <nav className="flex-1 space-y-5 overflow-y-auto p-4">
+          {isAdmin && (
+            <SidebarModeSelect
+              value={sidebarMode}
+              onChange={handleSidebarModeChange}
+            />
+          )}
+          <NavSection
+            title={isAdmin && sidebarMode === "admin" ? "Administration" : "Workspace"}
+            items={isAdmin && sidebarMode === "admin" ? adminItems : workspaceItems}
+          />
         </nav>
 
         <div className="border-t border-line p-4">
@@ -384,6 +409,40 @@ function NavItemLink({ item }: { item: NavItem }) {
       <Icon size={17} />
       {label}
     </NavLink>
+  );
+}
+
+function SidebarModeSelect({
+  value,
+  onChange,
+}: {
+  value: SidebarMode;
+  onChange: (mode: SidebarMode) => void;
+}) {
+  const Icon = value === "admin" ? ShieldCheck : UserRound;
+
+  return (
+    <section>
+      <p className="px-3 pb-2 font-mono text-[10px] uppercase tracking-[.18em] text-muted">
+        View as
+      </p>
+      <label className="relative block">
+        <span className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-moss">
+          <Icon size={17} />
+        </span>
+        <select
+          className="h-11 w-full appearance-none rounded-lg border border-line bg-canvas py-0 pl-10 pr-9 text-sm font-bold text-ink outline-none transition hover:bg-soft focus:border-moss focus:bg-white"
+          value={value}
+          onChange={(event) => onChange(event.target.value as SidebarMode)}
+        >
+          <option value="user">User workspace</option>
+          <option value="admin">Admin console</option>
+        </select>
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted">
+          <Settings2 size={15} />
+        </span>
+      </label>
+    </section>
   );
 }
 
