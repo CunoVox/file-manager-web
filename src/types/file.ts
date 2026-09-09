@@ -184,6 +184,39 @@ export type NotificationItem = {
   createdAt: string;
 };
 
+export type DeveloperApiKey = {
+  id: string;
+  name: string;
+  prefix: string;
+  scopes: string[];
+  active: boolean;
+  expiresAt?: string | null;
+  lastUsedAt?: string | null;
+  createdAt: string;
+  token?: string | null;
+};
+
+export type ApiUsageLog = {
+  id: string;
+  apiKeyId: string;
+  apiKeyName: string;
+  method: string;
+  path: string;
+  status: number;
+  durationMs: number;
+  ipAddress?: string | null;
+  errorMessage?: string | null;
+  createdAt: string;
+};
+
+export type DeveloperStats = {
+  apiKeys: number;
+  activeApiKeys: number;
+  requestsToday: number;
+  failedRequestsToday: number;
+  rateLimitPerMinute: number;
+};
+
 export type AuthResponse = {
   accessToken?: string | null;
   refreshToken?: string | null;

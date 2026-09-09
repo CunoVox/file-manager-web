@@ -1,7 +1,5 @@
 import {
-  Activity,
   ArrowRight,
-  Boxes,
   CheckCircle2,
   Code2,
   Database,
@@ -11,11 +9,10 @@ import {
   KeyRound,
   LockKeyhole,
   Mail,
-  Server,
   Share2,
   ShieldCheck,
   Sparkles,
-  Users,
+  UploadCloud,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { HaoBoxLogo } from "../components/brand/haobox-logo";
@@ -23,40 +20,40 @@ import { useAuthStore } from "../store/auth-store";
 
 const features = [
   {
-    title: "Private S3 storage",
-    description: "Run files on your own MinIO/S3-compatible nodes with admin-controlled access.",
+    title: "Private file workspace",
+    description: "Keep personal and team files in one clean place with folders, search, preview, and sharing.",
     Icon: Database,
   },
   {
-    title: "Multi-node scaling",
-    description: "Distribute uploads across multiple storage nodes and migrate data when a node fills up.",
-    Icon: Boxes,
+    title: "Fast uploads",
+    description: "Upload files with drag and drop, then continue working while HaoBox keeps progress visible.",
+    Icon: UploadCloud,
   },
   {
-    title: "Secure sharing",
-    description: "Share files privately with users or publish controlled public links when needed.",
+    title: "Simple sharing",
+    description: "Send files to the right people, review shared items, and keep public links easy to manage.",
     Icon: Share2,
   },
   {
-    title: "Operations ready",
-    description: "Track quota, audit logs, health checks, notifications, and background migrations.",
-    Icon: Activity,
+    title: "Readable previews",
+    description: "Open images, videos, and PDFs inline without turning every download into a guessing game.",
+    Icon: FileText,
   },
 ];
 
 const capabilities = [
   "Multi-file and drag-and-drop uploads",
-  "Folder, rename, move, trash, and restore",
+  "Folders, rename, move, trash, and restore",
   "Inline image, video, and PDF previews",
-  "User quota and admin role management",
-  "SMTP email templates and 2FA OTP",
-  "Swagger API for developer workflows",
+  "Private sharing and public links",
+  "Email notifications and password recovery",
+  "Developer API and public documentation",
 ];
 
 const stats = [
-  { label: "Storage nodes", value: "Multi" },
-  { label: "Sharing modes", value: "3" },
-  { label: "Admin controls", value: "Live" },
+  { label: "Upload flow", value: "Fast" },
+  { label: "Preview types", value: "Rich" },
+  { label: "API access", value: "Ready" },
 ];
 
 export function LandingPage() {
@@ -103,13 +100,13 @@ export function LandingPage() {
         <div className="flex flex-col justify-center">
           <div className="inline-flex w-fit items-center gap-2 rounded-full border border-line bg-white px-3 py-2 text-xs font-bold text-moss shadow-sm">
             <Sparkles className="h-4 w-4" />
-            Private file storage for modern teams
+            Private file storage for focused teams
           </div>
           <h1 className="mt-7 max-w-3xl text-5xl font-extrabold leading-[1.05] md:text-6xl">
-            HaoBox keeps files organized, shared, and under your control.
+            HaoBox gives your files a calmer place to live.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-muted">
-            Store and deliver files through your own S3-compatible infrastructure, with the dashboard, permissions, quota, and admin tools your users expect.
+            Upload, preview, organize, and share files from a private workspace that feels simple on the surface and dependable underneath.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link
@@ -121,12 +118,10 @@ export function LandingPage() {
             </Link>
             <a
               className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-line bg-white px-5 text-sm font-extrabold text-ink hover:bg-soft"
-              href="https://s3.haovo.cloud/swagger-ui/index.html"
-              rel="noreferrer"
-              target="_blank"
+              href="/developers/docs"
             >
               <Code2 className="h-4 w-4" />
-              View API Docs
+              Developer Docs
             </a>
           </div>
           <div className="mt-10 grid max-w-xl grid-cols-3 gap-3">
@@ -159,11 +154,11 @@ export function LandingPage() {
       <section id="platform" className="mx-auto grid max-w-7xl scroll-mt-24 gap-10 px-5 py-16 lg:grid-cols-[.95fr_1.05fr] lg:px-8">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[.22em] text-muted">
-            Storage platform
+            Product experience
           </p>
-          <h2 className="mt-3 text-4xl font-extrabold">Built for admins, useful for everyone.</h2>
+          <h2 className="mt-3 text-4xl font-extrabold">Everything important stays within reach.</h2>
           <p className="mt-5 max-w-xl text-base leading-8 text-muted">
-            HaoBox gives users a clean workspace while administrators manage the storage layer, quota, health checks, migrations, email templates, and access policy.
+            HaoBox keeps everyday file work clear: upload quickly, browse folders, preview content, recover deleted items, and share files without hunting through scattered links.
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -185,9 +180,9 @@ export function LandingPage() {
             <p className="font-mono text-[10px] uppercase tracking-[.22em] text-emerald-200/80">
               Developer ready
             </p>
-            <h2 className="mt-3 text-4xl font-extrabold">Expose file workflows through a clean API.</h2>
+            <h2 className="mt-3 text-4xl font-extrabold">Build file workflows through a clean API.</h2>
             <p className="mt-5 max-w-xl text-sm leading-7 text-white/65">
-              Start with Swagger today, then grow into API keys, rate limits, and developer-facing file automation when the product is ready.
+              Use public documentation, API keys, and a browser test console to connect HaoBox with your own tools.
             </p>
           </div>
           <div className="overflow-hidden rounded-lg border border-white/10 bg-[#0c1712]">
@@ -206,9 +201,9 @@ export function LandingPage() {
 
       <section className="mx-auto px-5 py-16 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-4xl font-extrabold">Give your files a calmer place to live.</h2>
+          <h2 className="text-4xl font-extrabold">Start with a workspace that feels obvious.</h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-8 text-muted">
-            Launch a private workspace, connect your MinIO nodes, and keep storage operations visible from one focused dashboard.
+            Keep files searchable, previewable, shareable, and recoverable in one place.
           </p>
           <div className="mt-8 flex justify-center">
             <Link
@@ -223,16 +218,43 @@ export function LandingPage() {
       </section>
 
       <footer className="border-t border-line bg-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between lg:px-8">
-          <HaoBoxLogo size="sm" />
-          <div className="flex flex-wrap gap-5">
-            <Link className="hover:text-moss" to="/login">
-              Sign in
-            </Link>
-            <a className="hover:text-moss" href="https://s3.haovo.cloud/swagger-ui/index.html" rel="noreferrer" target="_blank">
-              API Docs
-            </a>
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 text-sm lg:grid-cols-[1.4fr_repeat(3,minmax(0,1fr))] lg:px-8">
+          <div>
+            <HaoBoxLogo size="sm" />
+            <p className="mt-4 max-w-sm leading-7 text-muted">
+              A private file workspace for uploading, previewing, sharing, and building file workflows.
+            </p>
+            <p className="mt-6 text-xs font-semibold text-muted">(c) 2026 HaoBox. All rights reserved.</p>
           </div>
+
+          <FooterColumn
+            title="Product"
+            links={[
+              { label: "Features", href: "#features" },
+              { label: "File preview", href: "#features" },
+              { label: "Sharing", href: "#platform" },
+              { label: "Upload", href: "#platform" },
+            ]}
+          />
+          <FooterColumn
+            title="Developers"
+            links={[
+              { label: "Developer Docs", to: "/developers/docs" },
+              { label: "API Reference", to: "/developers/reference" },
+              { label: "API Console", to: "/developers/console" },
+              { label: "Swagger", href: "https://s3.haovo.cloud/swagger-ui/index.html", external: true },
+            ]}
+          />
+          <FooterColumn
+            title="Support"
+            links={[
+              { label: "Help Center", to: "/help" },
+              { label: "Security", to: "/security" },
+              { label: "Privacy", to: "/privacy" },
+              { label: "Terms", to: "/terms" },
+              { label: "Contact", href: "mailto:support@haovo.cloud" },
+            ]}
+          />
         </div>
       </footer>
     </main>
@@ -249,15 +271,15 @@ function ProductPreview() {
             <span className="h-3 w-3 rounded-full bg-amber-300" />
             <span className="h-3 w-3 rounded-full bg-moss" />
           </div>
-          <span className="rounded-full bg-soft px-3 py-1 text-xs font-bold text-moss">Admin workspace</span>
+          <span className="rounded-full bg-soft px-3 py-1 text-xs font-bold text-moss">Private workspace</span>
         </div>
         <div className="grid min-h-[480px] md:grid-cols-[190px_1fr]">
           <aside className="hidden border-r border-line bg-canvas p-4 md:block">
             <HaoBoxLogo size="sm" className="mb-8 h-9" />
             <PreviewNav Icon={FileArchive} label="My Files" active />
             <PreviewNav Icon={Share2} label="Shared" />
-            <PreviewNav Icon={Users} label="Users" />
-            <PreviewNav Icon={Server} label="S3 Store" />
+            <PreviewNav Icon={FileText} label="Recent" />
+            <PreviewNav Icon={LockKeyhole} label="Trash" />
           </aside>
           <div className="p-5">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
@@ -279,14 +301,14 @@ function ProductPreview() {
 
             <div className="mt-7 grid gap-3 sm:grid-cols-3">
               <PreviewMetric Icon={Gauge} label="Storage" value="10.5 MB / 40 GB" />
-              <PreviewMetric Icon={ShieldCheck} label="Healthy nodes" value="2 / 2" />
-              <PreviewMetric Icon={KeyRound} label="2FA" value="Enabled" />
+              <PreviewMetric Icon={ShieldCheck} label="Sharing" value="Private links" />
+              <PreviewMetric Icon={KeyRound} label="Account" value="2FA ready" />
             </div>
 
             <div className="mt-7 overflow-hidden rounded-lg border border-line">
-              <PreviewFile name="Brand-assets.zip" meta="application/zip · 86.2 MB" Icon={FileArchive} />
-              <PreviewFile name="Invoice-September.pdf" meta="application/pdf · 49.5 KB" Icon={FileText} />
-              <PreviewFile name="Product-demo.mp4" meta="video/mp4 · 9.2 MB" Icon={FileText} />
+              <PreviewFile name="Brand-assets.zip" meta="application/zip - 86.2 MB" Icon={FileArchive} />
+              <PreviewFile name="Invoice-September.pdf" meta="application/pdf - 49.5 KB" Icon={FileText} />
+              <PreviewFile name="Product-demo.mp4" meta="video/mp4 - 9.2 MB" Icon={FileText} />
             </div>
 
             <div className="mt-7 grid gap-3 sm:grid-cols-2">
@@ -295,14 +317,14 @@ function ProductPreview() {
                   <Mail className="h-4 w-4 text-moss" />
                   Email notifications
                 </div>
-                <p className="mt-2 text-xs leading-5 text-muted">OTP, password reset, sharing, and admin alerts.</p>
+                <p className="mt-2 text-xs leading-5 text-muted">OTP, password reset, and sharing updates.</p>
               </div>
               <div className="rounded-lg border border-line bg-canvas p-4">
                 <div className="flex items-center gap-2 text-sm font-extrabold">
                   <LockKeyhole className="h-4 w-4 text-moss" />
-                  Audit trail
+                  Account safety
                 </div>
-                <p className="mt-2 text-xs leading-5 text-muted">Trace upload, delete, share, migrate, and user actions.</p>
+                <p className="mt-2 text-xs leading-5 text-muted">Sign in securely and recover access when needed.</p>
               </div>
             </div>
           </div>
@@ -352,6 +374,40 @@ function ApiLine({ method, path, label }: { method: string; path: string; label:
       <div>
         <div className="break-all text-white">{path}</div>
         <div className="mt-1 font-sans text-xs text-white/50">{label}</div>
+      </div>
+    </div>
+  );
+}
+
+type FooterLink = {
+  label: string;
+  to?: string;
+  href?: string;
+  external?: boolean;
+};
+
+function FooterColumn({ title, links }: { title: string; links: FooterLink[] }) {
+  return (
+    <div>
+      <h3 className="text-xs font-extrabold uppercase tracking-[.18em] text-ink">{title}</h3>
+      <div className="mt-4 grid gap-3">
+        {links.map((link) =>
+          link.to ? (
+            <Link key={link.label} className="w-fit text-muted hover:text-moss" to={link.to}>
+              {link.label}
+            </Link>
+          ) : (
+            <a
+              key={link.label}
+              className="w-fit text-muted hover:text-moss"
+              href={link.href}
+              rel={link.external ? "noreferrer" : undefined}
+              target={link.external ? "_blank" : undefined}
+            >
+              {link.label}
+            </a>
+          ),
+        )}
       </div>
     </div>
   );

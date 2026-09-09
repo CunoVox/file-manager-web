@@ -1,6 +1,7 @@
 import {
   Bell,
   ClipboardList,
+  Code2,
   Database,
   LayoutDashboard,
   Files,
@@ -36,6 +37,7 @@ const workspaceItems: NavItem[] = [
   { to: "/files", Icon: Files, label: "My Files" },
   { to: "/shared", Icon: Share2, label: "Shared With Me" },
   { to: "/trash", Icon: Trash2, label: "Trash" },
+  { to: "/developer", Icon: Code2, label: "Developer" },
 ];
 
 const adminItems: NavItem[] = [

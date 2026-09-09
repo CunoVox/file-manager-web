@@ -8,10 +8,13 @@ import { AppShell } from "./components/layout/app-shell";
 import { AdminDashboardPage } from "./pages/admin-dashboard-page";
 import { AdminSettingsPage } from "./pages/admin-settings-page";
 import { AuditLogsPage } from "./pages/audit-logs-page";
+import { DeveloperPage } from "./pages/developer-page";
+import { DeveloperPublicPage } from "./pages/developer-public-page";
 import { FilesPage } from "./pages/files-page";
 import { ForgotPasswordPage } from "./pages/forgot-password-page";
 import { LandingPage } from "./pages/landing-page";
 import { ProfilePage } from "./pages/profile-page";
+import { PublicInfoPage } from "./pages/public-info-page";
 import { ResetPasswordPage } from "./pages/reset-password-page";
 import { SharedPage } from "./pages/shared-page";
 import { StorageAdminPage } from "./pages/storage-admin-page";
@@ -30,6 +33,14 @@ export function App() {
       <Toaster position="top-right" closeButton richColors duration={3500} />
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/developers" element={<DeveloperPublicPage />} />
+        <Route path="/developers/docs" element={<DeveloperPublicPage />} />
+        <Route path="/developers/reference" element={<DeveloperPublicPage />} />
+        <Route path="/developers/console" element={<DeveloperPublicPage />} />
+        <Route path="/help" element={<PublicInfoPage />} />
+        <Route path="/privacy" element={<PublicInfoPage />} />
+        <Route path="/terms" element={<PublicInfoPage />} />
+        <Route path="/security" element={<PublicInfoPage />} />
         <Route path="/login" element={<AuthPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -38,6 +49,7 @@ export function App() {
           <Route element={<AppShell />}>
             <Route path="/files" element={<FilesPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/developer" element={<DeveloperPage />} />
             <Route
               path="/admin/dashboard"
               element={
