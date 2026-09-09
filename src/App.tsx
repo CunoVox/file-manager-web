@@ -1,10 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthPage } from "./components/auth/auth-page";
 import { ProtectedRoute } from "./components/auth/protected-route";
 import { AppShell } from "./components/layout/app-shell";
+import { Seo } from "./components/seo";
 import { AdminDashboardPage } from "./pages/admin-dashboard-page";
 import { AdminSettingsPage } from "./pages/admin-settings-page";
 import { AuditLogsPage } from "./pages/audit-logs-page";
@@ -28,8 +29,12 @@ const queryClient = new QueryClient({
 });
 
 export function App() {
+  const location = useLocation();
+  const seo = getRouteSeo(location.pathname);
+
   return (
     <QueryClientProvider client={queryClient}>
+      <Seo {...seo} />
       <Toaster position="top-right" closeButton richColors duration={3500} />
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -101,6 +106,88 @@ export function App() {
       </Routes>
     </QueryClientProvider>
   );
+}
+
+function getRouteSeo(pathname: string) {
+  const normalized = pathname.replace(/\/+$/, "") || "/";
+  const baseKeywords =
+    "HaoBox, private file workspace, file manager, secure file sharing, file preview, developer API";
+
+  switch (normalized) {
+    case "/":
+      return {
+        title: "HaoBox - Private File Workspace",
+        description:
+          "HaoBox helps teams upload, preview, organize, share, and automate files from one private workspace.",
+        canonicalPath: "/",
+        keywords: `${baseKeywords}, file storage, cloud file manager`,
+      };
+    case "/developers":
+    case "/developers/docs":
+      return {
+        title: "HaoBox Developer Docs - File API Guide",
+        description:
+          "Learn how to use HaoBox API keys, scopes, pagination, file uploads, downloads, folders, rate limits, and response formats.",
+        canonicalPath: "/developers/docs",
+        keywords: `${baseKeywords}, API keys, file upload API, file download API`,
+      };
+    case "/developers/reference":
+      return {
+        title: "HaoBox API Reference - File and Folder Endpoints",
+        description:
+          "Explore HaoBox developer API endpoints for listing files, uploading files, downloading content, renaming, moving, deleting, and managing folders.",
+        canonicalPath: "/developers/reference",
+        keywords: `${baseKeywords}, API reference, REST API, file endpoints`,
+      };
+    case "/developers/console":
+      return {
+        title: "HaoBox API Console - Test Developer Requests",
+        description:
+          "Test HaoBox developer API requests directly from the browser with an API key and inspect status, latency, and response bodies.",
+        canonicalPath: "/developers/console",
+        keywords: `${baseKeywords}, API console, test API request`,
+      };
+    case "/help":
+      return {
+        title: "HaoBox Help Center",
+        description:
+          "Find quick help for uploading files, creating folders, sharing files, previewing content, and recovering account access in HaoBox.",
+        canonicalPath: "/help",
+        keywords: `${baseKeywords}, help center, file sharing help`,
+      };
+    case "/security":
+      return {
+        title: "HaoBox Security",
+        description:
+          "Security guidance for protecting HaoBox accounts, passwords, two-factor authentication, public links, and developer API keys.",
+        canonicalPath: "/security",
+        keywords: `${baseKeywords}, security, two-factor authentication, API key security`,
+      };
+    case "/privacy":
+      return {
+        title: "HaoBox Privacy Policy",
+        description:
+          "Read how HaoBox handles account information, file metadata, sharing records, API usage, and important security notifications.",
+        canonicalPath: "/privacy",
+        keywords: `${baseKeywords}, privacy policy, data privacy`,
+      };
+    case "/terms":
+      return {
+        title: "HaoBox Terms of Service",
+        description:
+          "Review the usage terms for HaoBox file workspace features, sharing, account responsibility, and developer API access.",
+        canonicalPath: "/terms",
+        keywords: `${baseKeywords}, terms of service, acceptable use`,
+      };
+    default:
+      return {
+        title: "HaoBox",
+        description:
+          "HaoBox is a private file workspace for uploading, previewing, organizing, sharing, and integrating files.",
+        canonicalPath: normalized,
+        robots: "noindex, nofollow" as const,
+      };
+  }
 }
 
 function RequireAdmin({ children }: { children: ReactNode }) {

@@ -5,13 +5,93 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f7f7f4" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="HaoBox" />
+    <meta
+        name="description"
+        content="HaoBox is a private file workspace for uploading, previewing, organizing, sharing, and integrating files through a developer API."
+    />
+    <meta
+        name="keywords"
+        content="HaoBox, private file storage, file manager, secure file sharing, file preview, developer API, S3 storage"
+    />
+    <link rel="canonical" href="https://haobox.cloud/" />
     <link rel="icon" type="image/png" href="/icon.png" />
     <link rel="apple-touch-icon" href="/icon.png" />
-    <title>HaoBox</title>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="HaoBox" />
+    <meta property="og:title" content="HaoBox - Private File Workspace" />
+    <meta
+        property="og:description"
+        content="Upload, preview, organize, share, and automate files from one private workspace."
+    />
+    <meta property="og:url" content="https://haobox.cloud/" />
+    <meta property="og:image" content="https://haobox.cloud/logo.png" />
+    <meta property="og:image:alt" content="HaoBox logo" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="HaoBox - Private File Workspace" />
+    <meta
+        name="twitter:description"
+        content="Upload, preview, organize, share, and automate files from one private workspace."
+    />
+    <meta name="twitter:image" content="https://haobox.cloud/logo.png" />
+
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "Organization",
+                    "@id": "https://haobox.cloud/#organization",
+                    "name": "HaoBox",
+                    "url": "https://haobox.cloud/",
+                    "logo": "https://haobox.cloud/logo.png",
+                    "contactPoint": {
+                        "@type": "ContactPoint",
+                        "email": "support@haovo.cloud",
+                        "contactType": "customer support"
+                    }
+                },
+                {
+                    "@type": "WebApplication",
+                    "@id": "https://haobox.cloud/#webapp",
+                    "name": "HaoBox",
+                    "url": "https://haobox.cloud/",
+                    "applicationCategory": "BusinessApplication",
+                    "operatingSystem": "Web",
+                    "description": "A private file workspace for uploading, previewing, organizing, sharing, and integrating files through a developer API.",
+                    "publisher": {
+                        "@id": "https://haobox.cloud/#organization"
+                    },
+                    "offers": {
+                        "@type": "Offer",
+                        "price": "0",
+                        "priceCurrency": "USD"
+                    }
+                }
+            ]
+        }
+    </script>
+
+    <title>HaoBox - Private File Workspace</title>
 </head>
 
 <body>
     <div id="root"></div>
+    <noscript>
+        <main>
+            <h1>HaoBox - Private File Workspace</h1>
+            <p>
+                HaoBox helps teams upload, preview, organize, share, and automate files from one private workspace.
+            </p>
+            <p>
+                Developer documentation is available at
+                <a href="https://haobox.cloud/developers/docs">https://haobox.cloud/developers/docs</a>.
+            </p>
+        </main>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
 </body>
 
