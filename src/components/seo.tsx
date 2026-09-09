@@ -10,7 +10,8 @@ type SeoProps = {
 };
 
 const SITE_URL = "https://haobox.cloud";
-const DEFAULT_IMAGE = `${SITE_URL}/logo.png`;
+const DEFAULT_IMAGE = `${SITE_URL}/og-image.png?v=20260909`;
+const DEFAULT_IMAGE_ALT = "HaoBox private file workspace preview";
 
 export function Seo({
   title,
@@ -24,6 +25,9 @@ export function Seo({
     const canonicalUrl = `${SITE_URL}${canonicalPath}`;
 
     document.title = title;
+    setMeta("itemprop", "name", title);
+    setMeta("itemprop", "description", description);
+    setMeta("itemprop", "image", image);
     setMeta("name", "description", description);
     setMeta("name", "robots", robots);
     setMeta("name", "author", "HaoBox");
@@ -32,23 +36,29 @@ export function Seo({
     setLink("canonical", canonicalUrl);
 
     setMeta("property", "og:type", "website");
+    setMeta("property", "og:locale", "en_US");
     setMeta("property", "og:site_name", "HaoBox");
     setMeta("property", "og:title", title);
     setMeta("property", "og:description", description);
     setMeta("property", "og:url", canonicalUrl);
     setMeta("property", "og:image", image);
-    setMeta("property", "og:image:alt", "HaoBox logo");
+    setMeta("property", "og:image:secure_url", image);
+    setMeta("property", "og:image:type", "image/png");
+    setMeta("property", "og:image:alt", DEFAULT_IMAGE_ALT);
+    setMeta("property", "og:image:width", "1731");
+    setMeta("property", "og:image:height", "909");
 
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", title);
     setMeta("name", "twitter:description", description);
     setMeta("name", "twitter:image", image);
+    setMeta("name", "twitter:image:alt", DEFAULT_IMAGE_ALT);
   }, [canonicalPath, description, image, keywords, robots, title]);
 
   return null;
 }
 
-function setMeta(attribute: "name" | "property", key: string, content: string) {
+function setMeta(attribute: "name" | "property" | "itemprop", key: string, content: string) {
   let element = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`);
   if (!element) {
     element = document.createElement("meta");

@@ -12,6 +12,7 @@ import {
   Play,
   ShieldCheck,
   Trash2,
+  X,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
@@ -324,18 +325,6 @@ export function DeveloperPage() {
                   {createKey.isPending ? <Loader2 className="size-4 animate-spin" /> : <KeyRound className="size-4" />}
                   Create key
                 </button>
-                {newToken && (
-                  <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4">
-                    <p className="text-sm font-extrabold">Copy this API key now</p>
-                    <p className="mt-1 text-xs text-muted">For security, the full key is only shown once.</p>
-                    <div className="mt-3 flex gap-2">
-                      <code className="min-w-0 flex-1 overflow-x-auto rounded-lg bg-white px-3 py-2 text-xs">{newToken}</code>
-                      <button className="rounded-lg border border-line bg-white px-3 text-sm font-bold" onClick={() => copy(newToken, "API key copied")}>
-                        Copy
-                      </button>
-                    </div>
-                  </div>
-                )}
               </Panel>
 
               <Panel title="Your API Keys" icon={<KeyRound size={18} />}>
@@ -537,7 +526,85 @@ export function DeveloperPage() {
           )}
         </>
       )}
+
+      {newToken && (
+        <ApiKeyCreatedDialog
+          token={newToken}
+          onClose={() => setNewToken("")}
+          onCopy={() => copy(newToken, "API key copied")}
+        />
+      )}
     </section>
+  );
+}
+
+function ApiKeyCreatedDialog({
+  token,
+  onClose,
+  onCopy,
+}: {
+  token: string;
+  onClose: () => void;
+  onCopy: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-ink/45 px-4 py-6 backdrop-blur-sm">
+      <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-line bg-white shadow-panel">
+        <div className="flex items-start justify-between gap-4 border-b border-line p-5">
+          <div className="flex gap-3">
+            <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-soft text-moss">
+              <KeyRound className="size-5" />
+            </span>
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[.18em] text-muted">New API Key</p>
+              <h2 className="mt-1 text-2xl font-extrabold">Copy your API key now</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                For security, the full key is only shown once. Store it in a private server environment before closing this dialog.
+              </p>
+            </div>
+          </div>
+          <button
+            className="grid size-9 shrink-0 place-items-center rounded-lg text-muted transition hover:bg-canvas hover:text-ink"
+            onClick={onClose}
+            title="Close"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+
+        <div className="p-5">
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <p className="text-sm font-extrabold text-amber-950">This secret cannot be viewed again later.</p>
+            <p className="mt-1 text-xs leading-5 text-amber-800">
+              If you lose it, revoke this key and create a new one.
+            </p>
+          </div>
+
+          <div className="mt-4 rounded-lg border border-line bg-canvas p-3">
+            <p className="mb-2 text-xs font-bold uppercase text-muted">API key secret</p>
+            <code className="block max-h-36 overflow-auto rounded-lg bg-white px-3 py-3 font-mono text-sm leading-6 text-ink">
+              {token}
+            </code>
+          </div>
+
+          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button
+              className="inline-flex h-11 items-center justify-center rounded-lg border border-line bg-white px-4 text-sm font-bold text-ink hover:bg-canvas"
+              onClick={onClose}
+            >
+              I have saved it
+            </button>
+            <button
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-moss px-4 text-sm font-bold text-white hover:bg-moss/90"
+              onClick={onCopy}
+            >
+              <Clipboard className="size-4" />
+              Copy API key
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
