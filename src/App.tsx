@@ -10,6 +10,7 @@ import { AdminSettingsPage } from "./pages/admin-settings-page";
 import { AuditLogsPage } from "./pages/audit-logs-page";
 import { FilesPage } from "./pages/files-page";
 import { ForgotPasswordPage } from "./pages/forgot-password-page";
+import { LandingPage } from "./pages/landing-page";
 import { ProfilePage } from "./pages/profile-page";
 import { ResetPasswordPage } from "./pages/reset-password-page";
 import { SharedPage } from "./pages/shared-page";
@@ -28,6 +29,7 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       <Toaster position="top-right" closeButton richColors duration={3500} />
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<AuthPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
