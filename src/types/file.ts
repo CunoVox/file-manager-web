@@ -226,3 +226,33 @@ export type AuthResponse = {
   emailVerificationRequired?: boolean;
   email?: string | null;
 };
+
+export type PayosSettings = {
+  enabled: boolean;
+  clientId: string;
+  apiKeyConfigured: boolean;
+  checksumKeyConfigured: boolean;
+  returnUrl: string;
+  cancelUrl: string;
+  webhookUrl: string;
+  encryptionConfigured: boolean;
+};
+
+export type BillingPlan = {
+  id: string;
+  name: string;
+  quotaBytes: number;
+  quotaGb: number;
+  price: number;
+  currency: string;
+  durationDays: number;
+  description: string;
+  active: boolean;
+  sortOrder: number;
+};
+
+export type CheckoutResponse = {
+  orderId: string;
+  orderCode: number;
+  checkoutUrl: string;
+};

@@ -9,6 +9,7 @@ import { Seo } from "./components/seo";
 import { AdminDashboardPage } from "./pages/admin-dashboard-page";
 import { AdminSettingsPage } from "./pages/admin-settings-page";
 import { AuditLogsPage } from "./pages/audit-logs-page";
+import { BillingResultPage } from "./pages/billing-result-page";
 import { DeveloperPage } from "./pages/developer-page";
 import { DeveloperPublicPage } from "./pages/developer-public-page";
 import { FilesPage } from "./pages/files-page";
@@ -54,6 +55,8 @@ export function App() {
           <Route element={<AppShell />}>
             <Route path="/files" element={<FilesPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/billing/success" element={<BillingResultPage />} />
+            <Route path="/billing/cancel" element={<BillingResultPage />} />
             <Route path="/developer" element={<DeveloperPage />} />
             <Route
               path="/admin/dashboard"

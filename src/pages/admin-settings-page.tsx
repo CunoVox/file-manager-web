@@ -1,13 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
-import { Code2, Loader2, Mail, Save, Send, Settings2, Trash2, RotateCcw } from "lucide-react";
+import { Code2, Copy, CreditCard, Loader2, Mail, Plus, Save, Send, Settings2, Trash2, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { api } from "../lib/api";
-import type { EmailTemplate, SmtpSettings, SystemSettings, TrashPolicy } from "../types/file";
+import type { BillingPlan, EmailTemplate, PayosSettings, SmtpSettings, SystemSettings, TrashPolicy } from "../types/file";
 
 type SmtpForm = {
   enabled: boolean;
@@ -22,6 +22,27 @@ type SmtpForm = {
   otpSubject: string;
 };
 
+type PayosForm = {
+  enabled: boolean;
+  clientId: string;
+  apiKey: string;
+  checksumKey: string;
+  returnUrl: string;
+  cancelUrl: string;
+};
+
+type PlanForm = {
+  id?: string;
+  name: string;
+  quotaGb: string;
+  price: string;
+  currency: string;
+  durationDays: string;
+  description: string;
+  active: boolean;
+  sortOrder: string;
+};
+
 const emptySmtpForm: SmtpForm = {
   enabled: false,
   host: "",
@@ -33,6 +54,26 @@ const emptySmtpForm: SmtpForm = {
   fromEmail: "",
   fromName: "HaoBox",
   otpSubject: "Your HaoBox verification code",
+};
+
+const emptyPayosForm: PayosForm = {
+  enabled: false,
+  clientId: "",
+  apiKey: "",
+  checksumKey: "",
+  returnUrl: "",
+  cancelUrl: "",
+};
+
+const emptyPlanForm: PlanForm = {
+  name: "",
+  quotaGb: "20",
+  price: "99000",
+  currency: "VND",
+  durationDays: "30",
+  description: "",
+  active: true,
+  sortOrder: "0",
 };
 
 export function AdminSettingsPage() {
@@ -342,6 +383,8 @@ export function AdminSettingsPage() {
           </div>
         </section>
 
+        <BillingSettingsSection />
+
         <section className="rounded-xl border border-line bg-white p-5">
           <div className="flex items-start gap-3">
             <span className="grid size-10 place-items-center rounded-lg bg-soft text-moss">
@@ -437,6 +480,230 @@ export function AdminSettingsPage() {
   );
 }
 
+function BillingSettingsSection() {
+  const client = useQueryClient();
+  const [payosForm, setPayosForm] = useState<PayosForm>(emptyPayosForm);
+  const [planForm, setPlanForm] = useState<PlanForm>(emptyPlanForm);
+
+  const payos = useQuery({
+    queryKey: ["admin", "billing", "payos"],
+    queryFn: async () => (await api.get<PayosSettings>("/api/v1/admin/billing/payos")).data,
+  });
+  const plans = useQuery({
+    queryKey: ["admin", "billing", "plans"],
+    queryFn: async () => (await api.get<BillingPlan[]>("/api/v1/admin/billing/plans")).data,
+  });
+
+  const updatePayos = useMutation({
+    mutationFn: async () =>
+      (
+        await api.patch<PayosSettings>("/api/v1/admin/billing/payos", {
+          ...payosForm,
+          apiKey: payosForm.apiKey.trim(),
+          checksumKey: payosForm.checksumKey.trim(),
+        })
+      ).data,
+    onSuccess: async (settings) => {
+      setPayosForm(fromPayosSettings(settings));
+      toast.success("PayOS settings updated");
+      await client.invalidateQueries({ queryKey: ["admin", "billing", "payos"] });
+      await client.invalidateQueries({ queryKey: ["audit-logs"] });
+    },
+    onError: (error: any) =>
+      toast.error("Could not update PayOS settings", {
+        description: error.response?.data?.message ?? "Check APP_ENCRYPTION_KEY and PayOS credentials.",
+      }),
+  });
+
+  const savePlan = useMutation({
+    mutationFn: async () => {
+      const payload = planPayload(planForm);
+      if (planForm.id) {
+        return (await api.patch<BillingPlan>(`/api/v1/admin/billing/plans/${planForm.id}`, payload)).data;
+      }
+      return (await api.post<BillingPlan>("/api/v1/admin/billing/plans", payload)).data;
+    },
+    onSuccess: async () => {
+      setPlanForm(emptyPlanForm);
+      toast.success(planForm.id ? "Quota plan updated" : "Quota plan created");
+      await client.invalidateQueries({ queryKey: ["admin", "billing", "plans"] });
+      await client.invalidateQueries({ queryKey: ["billing", "plans"] });
+      await client.invalidateQueries({ queryKey: ["audit-logs"] });
+    },
+    onError: (error: any) =>
+      toast.error("Could not save quota plan", {
+        description: error.response?.data?.message ?? error.message ?? "Please check the plan form.",
+      }),
+  });
+
+  useEffect(() => {
+    if (payos.data) setPayosForm(fromPayosSettings(payos.data));
+  }, [payos.data]);
+
+  async function copyWebhook() {
+    if (!payos.data?.webhookUrl) return;
+    await navigator.clipboard.writeText(payos.data.webhookUrl);
+    toast.success("Webhook URL copied");
+  }
+
+  return (
+    <section className="rounded-xl border border-line bg-white p-5">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <CreditCard className="size-5 text-moss" />
+            <h2 className="text-xl font-extrabold">PayOS & Quota Plans</h2>
+          </div>
+          <p className="mt-2 text-sm text-muted">
+            Connect PayOS and publish storage plans users can buy from their profile.
+          </p>
+        </div>
+        <label className="inline-flex items-center gap-2 rounded-lg border border-line bg-canvas px-3 py-2 text-sm font-bold">
+          <input
+            type="checkbox"
+            className="size-4 accent-moss"
+            checked={payosForm.enabled}
+            onChange={(event) => setPayosForm((current) => ({ ...current, enabled: event.target.checked }))}
+          />
+          Enabled
+        </label>
+      </div>
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_1.1fr]">
+        <div className="rounded-lg border border-line bg-canvas p-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Client ID">
+              <Input value={payosForm.clientId} onChange={(event) => updatePayosField("clientId", event.target.value, setPayosForm)} autoComplete="off" />
+            </Field>
+            <Field label={`API Key${payos.data?.apiKeyConfigured ? " (leave blank to keep current)" : ""}`}>
+              <Input type="password" value={payosForm.apiKey} onChange={(event) => updatePayosField("apiKey", event.target.value, setPayosForm)} autoComplete="new-password" />
+            </Field>
+            <Field label={`Checksum Key${payos.data?.checksumKeyConfigured ? " (leave blank to keep current)" : ""}`}>
+              <Input type="password" value={payosForm.checksumKey} onChange={(event) => updatePayosField("checksumKey", event.target.value, setPayosForm)} autoComplete="new-password" />
+            </Field>
+            <Field label="Return URL">
+              <Input value={payosForm.returnUrl} onChange={(event) => updatePayosField("returnUrl", event.target.value, setPayosForm)} placeholder="https://haobox.cloud/billing/success" />
+            </Field>
+            <Field label="Cancel URL">
+              <Input value={payosForm.cancelUrl} onChange={(event) => updatePayosField("cancelUrl", event.target.value, setPayosForm)} placeholder="https://haobox.cloud/billing/cancel" />
+            </Field>
+            <div className="grid content-end">
+              <Button onClick={() => updatePayos.mutate()} disabled={updatePayos.isPending || payos.isPending}>
+                {updatePayos.isPending ? <Loader2 className="size-4 animate-spin" /> : <Save size={16} />}
+                Save PayOS
+              </Button>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-lg border border-line bg-white p-3">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted">Webhook URL</p>
+                <p className="mt-1 truncate font-mono text-xs text-ink">{payos.data?.webhookUrl ?? "Loading..."}</p>
+              </div>
+              <Button variant="outline" onClick={copyWebhook} disabled={!payos.data?.webhookUrl}>
+                <Copy size={16} />
+                Copy
+              </Button>
+            </div>
+            {!payos.data?.encryptionConfigured && (
+              <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+                APP_ENCRYPTION_KEY is not configured. Add it before saving PayOS secret keys.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-line bg-canvas p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="font-extrabold">{planForm.id ? "Edit Quota Plan" : "Create Quota Plan"}</h3>
+              <p className="mt-1 text-xs text-muted">Plans are shown to users when active.</p>
+            </div>
+            {planForm.id && (
+              <Button variant="outline" onClick={() => setPlanForm(emptyPlanForm)}>
+                New plan
+              </Button>
+            )}
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <Field label="Plan name">
+              <Input value={planForm.name} onChange={(event) => updatePlanField("name", event.target.value, setPlanForm)} placeholder="Pro 100GB" />
+            </Field>
+            <Field label="Quota GB">
+              <Input type="number" min={1} value={planForm.quotaGb} onChange={(event) => updatePlanField("quotaGb", event.target.value, setPlanForm)} />
+            </Field>
+            <Field label="Price">
+              <Input type="number" min={0} value={planForm.price} onChange={(event) => updatePlanField("price", event.target.value, setPlanForm)} />
+            </Field>
+            <Field label="Currency">
+              <Input value={planForm.currency} onChange={(event) => updatePlanField("currency", event.target.value, setPlanForm)} />
+            </Field>
+            <Field label="Duration days">
+              <Input type="number" min={0} value={planForm.durationDays} onChange={(event) => updatePlanField("durationDays", event.target.value, setPlanForm)} />
+            </Field>
+            <Field label="Sort order">
+              <Input type="number" value={planForm.sortOrder} onChange={(event) => updatePlanField("sortOrder", event.target.value, setPlanForm)} />
+            </Field>
+            <label className="inline-flex h-11 items-center gap-2 rounded-lg border border-line bg-white px-3 text-sm font-bold">
+              <input
+                type="checkbox"
+                className="size-4 accent-moss"
+                checked={planForm.active}
+                onChange={(event) => setPlanForm((current) => ({ ...current, active: event.target.checked }))}
+              />
+              Active
+            </label>
+            <div className="grid content-end">
+              <Button onClick={() => savePlan.mutate()} disabled={savePlan.isPending}>
+                {savePlan.isPending ? <Loader2 className="size-4 animate-spin" /> : <Plus size={16} />}
+                {planForm.id ? "Save plan" : "Create plan"}
+              </Button>
+            </div>
+            <Field label="Description">
+              <textarea
+                className="min-h-[88px] w-full rounded-lg border border-line bg-white px-3 py-3 text-sm outline-none transition placeholder:text-muted/70 focus:border-moss focus:ring-2 focus:ring-moss/10 md:col-span-2"
+                value={planForm.description}
+                onChange={(event) => updatePlanField("description", event.target.value, setPlanForm)}
+                placeholder="Best for teams that need more storage."
+              />
+            </Field>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 overflow-hidden rounded-lg border border-line">
+        <div className="grid grid-cols-[1.3fr_.8fr_.8fr_.8fr_.6fr] gap-3 border-b border-line bg-canvas px-4 py-3 text-xs font-bold uppercase tracking-wide text-muted">
+          <span>Plan</span>
+          <span>Quota</span>
+          <span>Price</span>
+          <span>Duration</span>
+          <span>Status</span>
+        </div>
+        {(plans.data ?? []).map((plan) => (
+          <button
+            key={plan.id}
+            className="grid w-full grid-cols-[1.3fr_.8fr_.8fr_.8fr_.6fr] gap-3 border-b border-line px-4 py-3 text-left text-sm last:border-b-0 hover:bg-canvas"
+            onClick={() => setPlanForm(fromPlan(plan))}
+          >
+            <span className="min-w-0">
+              <strong className="block truncate">{plan.name}</strong>
+              <span className="block truncate text-xs text-muted">{plan.description || "No description"}</span>
+            </span>
+            <span className="font-bold">{plan.quotaGb} GB</span>
+            <span className="font-bold">{formatMoney(plan.price, plan.currency)}</span>
+            <span>{plan.durationDays > 0 ? `${plan.durationDays} days` : "No expiry"}</span>
+            <span className={plan.active ? "font-bold text-moss" : "font-bold text-muted"}>{plan.active ? "Active" : "Hidden"}</span>
+          </button>
+        ))}
+        {!plans.isPending && !plans.data?.length && (
+          <div className="px-4 py-8 text-center text-sm text-muted">No quota plans yet.</div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block">
@@ -461,12 +728,82 @@ function fromSmtpSettings(settings: SmtpSettings): SmtpForm {
   };
 }
 
+function fromPayosSettings(settings: PayosSettings): PayosForm {
+  return {
+    enabled: settings.enabled,
+    clientId: settings.clientId ?? "",
+    apiKey: "",
+    checksumKey: "",
+    returnUrl: settings.returnUrl ?? "",
+    cancelUrl: settings.cancelUrl ?? "",
+  };
+}
+
+function fromPlan(plan: BillingPlan): PlanForm {
+  return {
+    id: plan.id,
+    name: plan.name,
+    quotaGb: String(plan.quotaGb),
+    price: String(plan.price),
+    currency: plan.currency || "VND",
+    durationDays: String(plan.durationDays),
+    description: plan.description ?? "",
+    active: plan.active,
+    sortOrder: String(plan.sortOrder),
+  };
+}
+
+function planPayload(form: PlanForm) {
+  const quotaGb = Number(form.quotaGb);
+  const price = Number(form.price);
+  const durationDays = Number(form.durationDays);
+  const sortOrder = Number(form.sortOrder);
+  if (!form.name.trim()) throw new Error("Plan name is required.");
+  if (!Number.isFinite(quotaGb) || quotaGb < 1) throw new Error("Quota must be at least 1 GB.");
+  if (!Number.isFinite(price) || price < 0) throw new Error("Price must be zero or greater.");
+  if (!Number.isFinite(durationDays) || durationDays < 0) throw new Error("Duration must be zero or greater.");
+  return {
+    name: form.name.trim(),
+    quotaGb,
+    price,
+    currency: (form.currency || "VND").trim().toUpperCase(),
+    durationDays,
+    description: form.description.trim(),
+    active: form.active,
+    sortOrder: Number.isFinite(sortOrder) ? sortOrder : 0,
+  };
+}
+
+function formatMoney(amount: number, currency: string) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: currency || "VND",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
 function updateSmtpField(
   key: keyof SmtpForm,
   value: string,
   setSmtpForm: Dispatch<SetStateAction<SmtpForm>>,
 ) {
   setSmtpForm((current) => ({ ...current, [key]: value }));
+}
+
+function updatePayosField(
+  key: keyof PayosForm,
+  value: string,
+  setPayosForm: Dispatch<SetStateAction<PayosForm>>,
+) {
+  setPayosForm((current) => ({ ...current, [key]: value }));
+}
+
+function updatePlanField(
+  key: keyof PlanForm,
+  value: string,
+  setPlanForm: Dispatch<SetStateAction<PlanForm>>,
+) {
+  setPlanForm((current) => ({ ...current, [key]: value }));
 }
 
 function currentTemplate(templates: EmailTemplate[] | undefined, selectedTemplate: string) {
