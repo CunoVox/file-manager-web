@@ -15,6 +15,7 @@ import { DeveloperPublicPage } from "./pages/developer-public-page";
 import { FilesPage } from "./pages/files-page";
 import { ForgotPasswordPage } from "./pages/forgot-password-page";
 import { LandingPage } from "./pages/landing-page";
+import { PlansPage } from "./pages/plans-page";
 import { ProfilePage } from "./pages/profile-page";
 import { PublicInfoPage } from "./pages/public-info-page";
 import { ResetPasswordPage } from "./pages/reset-password-page";
@@ -39,6 +40,7 @@ export function App() {
       <Toaster position="top-right" closeButton richColors duration={3500} />
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/plans" element={<PlansPage />} />
         <Route path="/developers" element={<DeveloperPublicPage />} />
         <Route path="/developers/docs" element={<DeveloperPublicPage />} />
         <Route path="/developers/reference" element={<DeveloperPublicPage />} />
@@ -133,6 +135,14 @@ function getRouteSeo(pathname: string) {
           "Learn how to use HaoBox API keys, scopes, pagination, file uploads, downloads, folders, rate limits, and response formats.",
         canonicalPath: "/developers/docs",
         keywords: `${baseKeywords}, API keys, file upload API, file download API`,
+      };
+    case "/plans":
+      return {
+        title: "HaoBox Plans - Storage Pricing",
+        description:
+          "Compare HaoBox storage plans for private file uploads, previews, sharing, and developer API workflows.",
+        canonicalPath: "/plans",
+        keywords: `${baseKeywords}, storage pricing, file storage plans, cloud storage pricing`,
       };
     case "/developers/reference":
       return {

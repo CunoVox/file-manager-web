@@ -379,7 +379,7 @@ function PlanSummary({ user }: { user: ReturnType<typeof useAuthStore.getState>[
         </div>
       )}
       <NavLink
-        to="/profile#upgrade-storage"
+        to="/plans"
         className="mt-3 inline-flex h-8 w-full items-center justify-center gap-2 rounded-lg bg-moss px-3 text-xs font-extrabold text-white transition hover:bg-moss/90"
       >
         <CreditCard size={14} />

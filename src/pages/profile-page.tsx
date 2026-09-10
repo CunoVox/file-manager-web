@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { CreditCard, HardDrive, KeyRound, Loader2, RefreshCw, Save, ShieldCheck, Sparkles, UserRound } from "lucide-react";
+import { Link } from "react-router-dom";
+import { HardDrive, KeyRound, Loader2, RefreshCw, Save, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { api } from "../lib/api";
 import { formatSize } from "../lib/utils";
 import { useAuthStore } from "../store/auth-store";
-import type { AuthResponse, AuthUser, BillingPlan, CheckoutResponse } from "../types/file";
+import type { AuthResponse, AuthUser } from "../types/file";
 
 export function ProfilePage() {
   const user = useAuthStore((state) => state.user);
@@ -33,24 +33,6 @@ export function ProfilePage() {
   const percent = quota ? Math.min(100, Math.round((used / quota) * 100)) : 0;
   const isAdmin = user?.roles.includes("ADMIN") ?? false;
   const currentPlan = planFromQuota(quota);
-
-  const billingPlans = useQuery({
-    queryKey: ["billing", "plans"],
-    queryFn: async () => (await api.get<BillingPlan[]>("/api/v1/billing/plans")).data,
-  });
-
-  const checkout = useMutation({
-    mutationFn: async (planId: string) =>
-      (await api.post<CheckoutResponse>("/api/v1/billing/checkout", { planId })).data,
-    onSuccess: (response) => {
-      toast.success("Redirecting to PayOS checkout");
-      window.location.href = response.checkoutUrl;
-    },
-    onError: (error: any) =>
-      toast.error("Could not start checkout", {
-        description: error.response?.data?.message ?? "Please try again later.",
-      }),
-  });
 
   useEffect(() => {
     setFullName(user?.fullName ?? "");
@@ -224,9 +206,9 @@ export function ProfilePage() {
                     </span>
                   </div>
                 </div>
-                <a href="#upgrade-storage" className="text-sm font-extrabold text-moss hover:underline">
+                <Link to="/plans" className="text-sm font-extrabold text-moss hover:underline">
                   Upgrade plan
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -252,45 +234,6 @@ export function ProfilePage() {
           </div>
         </section>
       </div>
-
-      <section id="upgrade-storage" className="mt-4 scroll-mt-24 rounded-xl border border-line bg-white p-5">
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[.18em] text-muted">
-              Billing
-            </p>
-            <h2 className="mt-2 text-xl font-extrabold">Upgrade Storage</h2>
-            <p className="mt-2 text-sm text-muted">
-              Choose a quota plan and pay securely with PayOS.
-            </p>
-          </div>
-          <span className="grid size-10 place-items-center rounded-lg bg-soft text-moss">
-            <CreditCard size={18} />
-          </span>
-        </div>
-
-        {billingPlans.isPending ? (
-          <div className="mt-6 flex h-28 items-center justify-center text-muted">
-            <Loader2 className="size-5 animate-spin" />
-          </div>
-        ) : billingPlans.data?.length ? (
-          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {billingPlans.data.map((plan) => (
-              <UpgradePlanCard
-                key={plan.id}
-                plan={plan}
-                currentQuota={quota}
-                pending={checkout.isPending}
-                onUpgrade={() => checkout.mutate(plan.id)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="mt-6 rounded-lg border border-dashed border-line bg-canvas p-8 text-center text-sm text-muted">
-            No upgrade plans are available yet.
-          </div>
-        )}
-      </section>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <section className="rounded-xl border border-line bg-white p-5">
@@ -452,55 +395,6 @@ export function ProfilePage() {
   );
 }
 
-function UpgradePlanCard({
-  plan,
-  currentQuota,
-  pending,
-  onUpgrade,
-}: {
-  plan: BillingPlan;
-  currentQuota: number | null;
-  pending: boolean;
-  onUpgrade: () => void;
-}) {
-  const isCurrent = currentQuota != null && plan.quotaBytes === currentQuota;
-  const isDowngrade = currentQuota != null && plan.quotaBytes < currentQuota;
-  const disabled = pending || isCurrent || isDowngrade;
-  const label = isCurrent ? "Current plan" : isDowngrade ? "Included" : "Upgrade";
-
-  return (
-    <article
-      className={
-        isCurrent
-          ? "rounded-lg border border-moss/30 bg-soft p-4"
-          : "rounded-lg border border-line bg-canvas p-4"
-      }
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-extrabold">{plan.name}</h3>
-          <p className="mt-1 text-sm text-muted">{plan.description || "More room for your files."}</p>
-        </div>
-        <strong className="rounded-full bg-soft px-2.5 py-1 text-xs text-moss">{plan.quotaGb} GB</strong>
-      </div>
-      <div className="mt-5">
-        <p className="text-2xl font-extrabold tracking-[-.03em]">{formatMoney(plan.price, plan.currency)}</p>
-        <p className="mt-1 text-xs text-muted">
-          {plan.durationDays > 0 ? `Valid for ${plan.durationDays} days` : "No expiry"}
-        </p>
-      </div>
-      <Button
-        className="mt-4 w-full"
-        variant={isCurrent || isDowngrade ? "outline" : "default"}
-        onClick={onUpgrade}
-        disabled={disabled}
-      >
-        {pending && !isCurrent && !isDowngrade ? <Loader2 className="size-4 animate-spin" /> : <CreditCard size={16} />}
-        {label}
-      </Button>
-    </article>
-  );
-}
 function ProfileField({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="rounded-lg border border-line bg-canvas px-3 py-2">
@@ -517,14 +411,6 @@ function FormField({ label, children }: { label: string; children: ReactNode }) 
       {children}
     </label>
   );
-}
-
-function formatMoney(amount: number, currency: string) {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: currency || "VND",
-    maximumFractionDigits: 0,
-  }).format(amount);
 }
 
 function planFromQuota(quota: number | null) {

@@ -14,9 +14,13 @@ import {
   Sparkles,
   UploadCloud,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { HaoBoxLogo } from "../components/brand/haobox-logo";
+import { api } from "../lib/api";
+import { formatMoney } from "../lib/billing";
 import { useAuthStore } from "../store/auth-store";
+import type { BillingPlan } from "../types/file";
 
 const features = [
   {
@@ -56,9 +60,66 @@ const stats = [
   { label: "API access", value: "Ready" },
 ];
 
+const fallbackPlans: BillingPlan[] = [
+  {
+    id: "free-display",
+    name: "Free 5GB",
+    quotaBytes: 5 * 1024 * 1024 * 1024,
+    quotaGb: 5,
+    price: 0,
+    currency: "VND",
+    durationDays: 0,
+    description: "A free workspace to try HaoBox, store essential files, and explore secure sharing.",
+    active: true,
+    sortOrder: 0,
+  },
+  {
+    id: "starter-fallback",
+    name: "Starter 20GB",
+    quotaBytes: 20 * 1024 * 1024 * 1024,
+    quotaGb: 20,
+    price: 29000,
+    currency: "VND",
+    durationDays: 30,
+    description: "20GB private storage for personal files and everyday sharing.",
+    active: true,
+    sortOrder: 1,
+  },
+  {
+    id: "pro-fallback",
+    name: "Pro 50GB",
+    quotaBytes: 50 * 1024 * 1024 * 1024,
+    quotaGb: 50,
+    price: 69000,
+    currency: "VND",
+    durationDays: 30,
+    description: "50GB storage for frequent uploads, previews, and file sharing.",
+    active: true,
+    sortOrder: 2,
+  },
+  {
+    id: "business-fallback",
+    name: "Business 100GB",
+    quotaBytes: 100 * 1024 * 1024 * 1024,
+    quotaGb: 100,
+    price: 129000,
+    currency: "VND",
+    durationDays: 30,
+    description: "100GB storage for small teams, shops, and heavier file workflows.",
+    active: true,
+    sortOrder: 3,
+  },
+];
+
 export function LandingPage() {
   const isSignedIn = Boolean(useAuthStore((state) => state.token));
   const primaryHref = isSignedIn ? "/files" : "/login";
+  const plans = useQuery({
+    queryKey: ["billing", "plans"],
+    queryFn: async () => (await api.get<BillingPlan[]>("/api/v1/billing/plans")).data,
+    retry: false,
+  });
+  const visiblePlans = plans.data?.length ? withFreePlan(plans.data) : fallbackPlans;
 
   return (
     <main className="min-h-screen bg-canvas text-ink">
@@ -73,6 +134,9 @@ export function LandingPage() {
             </a>
             <a className="hover:text-moss" href="#platform">
               Platform
+            </a>
+            <a className="hover:text-moss" href="#plans">
+              Plans
             </a>
             <a className="hover:text-moss" href="#developers">
               Developers
@@ -199,6 +263,47 @@ export function LandingPage() {
         </div>
       </section>
 
+      <section id="plans" className="mx-auto max-w-7xl scroll-mt-24 px-5 py-16 lg:px-8">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[.22em] text-muted">
+              Pricing
+            </p>
+            <h2 className="mt-3 text-4xl font-extrabold">Upgrade when your files need more room.</h2>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-muted">
+              Every account starts free. Paid plans add more private storage for uploads, previews, sharing, and API usage.
+            </p>
+          </div>
+          <Link
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 text-sm font-extrabold hover:bg-soft"
+            to="/plans"
+          >
+            View all plans
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {visiblePlans.slice(0, 4).map((plan) => (
+            <article key={plan.id} className="flex min-h-[280px] flex-col rounded-lg border border-line bg-white p-5">
+              <div className="relative">
+                <span className="absolute right-0 top-0 grid size-12 place-items-center rounded-full bg-soft text-center text-xs font-extrabold leading-4 text-moss">
+                  {plan.quotaGb}
+                  <br />
+                  GB
+                </span>
+                <h3 className="min-h-[3.25rem] pr-14 text-xl font-extrabold leading-tight">{plan.name}</h3>
+                <p className="mt-2 min-h-[5.5rem] text-sm leading-6 text-muted">{plan.description || "Private storage for your HaoBox workspace."}</p>
+              </div>
+              <p className="mt-auto text-3xl font-extrabold tracking-[-.04em]">{formatMoney(plan.price, plan.currency)}</p>
+              <p className="mt-2 text-xs text-muted">
+                {plan.price === 0 ? "Included for new users" : plan.durationDays > 0 ? `Valid for ${plan.durationDays} days` : "No expiry"}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="mx-auto px-5 py-16 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="text-4xl font-extrabold">Start with a workspace that feels obvious.</h2>
@@ -231,6 +336,7 @@ export function LandingPage() {
             title="Product"
             links={[
               { label: "Features", href: "#features" },
+              { label: "Plans", to: "/plans" },
               { label: "File preview", href: "#features" },
               { label: "Sharing", href: "#platform" },
               { label: "Upload", href: "#platform" },
@@ -259,6 +365,13 @@ export function LandingPage() {
       </footer>
     </main>
   );
+}
+
+function withFreePlan(plans: BillingPlan[]) {
+  return [
+    fallbackPlans[0],
+    ...plans.filter((plan) => plan.price > 0).sort((a, b) => a.sortOrder - b.sortOrder),
+  ];
 }
 
 function ProductPreview() {
