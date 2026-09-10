@@ -18,12 +18,16 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       user: null,
       setSession: (token, refreshToken, user) => {
-        sessionStorage.setItem("file-manager-token", token);
-        sessionStorage.setItem("file-manager-refresh-token", refreshToken);
+        localStorage.setItem("file-manager-token", token);
+        localStorage.setItem("file-manager-refresh-token", refreshToken);
+        sessionStorage.removeItem("file-manager-token");
+        sessionStorage.removeItem("file-manager-refresh-token");
         set({ token, refreshToken, user });
       },
       updateUser: (user) => set({ user }),
       clearSession: () => {
+        localStorage.removeItem("file-manager-token");
+        localStorage.removeItem("file-manager-refresh-token");
         sessionStorage.removeItem("file-manager-token");
         sessionStorage.removeItem("file-manager-refresh-token");
         set({ token: null, refreshToken: null, user: null });
@@ -31,7 +35,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "file-manager-auth",
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
     },
   ),
 );

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { CreditCard, HardDrive, KeyRound, Loader2, RefreshCw, Save, ShieldCheck, UserRound } from "lucide-react";
+import { CreditCard, HardDrive, KeyRound, Loader2, RefreshCw, Save, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -32,6 +32,7 @@ export function ProfilePage() {
   const quota = user?.effectiveStorageQuotaBytes ?? null;
   const percent = quota ? Math.min(100, Math.round((used / quota) * 100)) : 0;
   const isAdmin = user?.roles.includes("ADMIN") ?? false;
+  const currentPlan = planFromQuota(quota);
 
   const billingPlans = useQuery({
     queryKey: ["billing", "plans"],
@@ -209,6 +210,26 @@ export function ProfilePage() {
           </div>
 
           <div className="mt-6">
+            <div className="mb-5 rounded-lg border border-line bg-canvas px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-[.18em] text-muted">
+                    Current plan
+                  </p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <strong className="text-lg">{currentPlan.name}</strong>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-soft px-2 py-1 text-xs font-bold text-moss">
+                      <Sparkles size={12} />
+                      {quota == null ? "Unlimited" : formatSize(quota)}
+                    </span>
+                  </div>
+                </div>
+                <a href="#upgrade-storage" className="text-sm font-extrabold text-moss hover:underline">
+                  Upgrade plan
+                </a>
+              </div>
+            </div>
+
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <p className="text-3xl font-extrabold tracking-[-.04em]">{formatSize(used)}</p>
@@ -232,7 +253,7 @@ export function ProfilePage() {
         </section>
       </div>
 
-      <section className="mt-4 rounded-xl border border-line bg-white p-5">
+      <section id="upgrade-storage" className="mt-4 scroll-mt-24 rounded-xl border border-line bg-white p-5">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[.18em] text-muted">
@@ -255,29 +276,13 @@ export function ProfilePage() {
         ) : billingPlans.data?.length ? (
           <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {billingPlans.data.map((plan) => (
-              <article key={plan.id} className="rounded-lg border border-line bg-canvas p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-lg font-extrabold">{plan.name}</h3>
-                    <p className="mt-1 text-sm text-muted">{plan.description || "More room for your files."}</p>
-                  </div>
-                  <strong className="rounded-full bg-soft px-2.5 py-1 text-xs text-moss">{plan.quotaGb} GB</strong>
-                </div>
-                <div className="mt-5">
-                  <p className="text-2xl font-extrabold tracking-[-.03em]">{formatMoney(plan.price, plan.currency)}</p>
-                  <p className="mt-1 text-xs text-muted">
-                    {plan.durationDays > 0 ? `Valid for ${plan.durationDays} days` : "No expiry"}
-                  </p>
-                </div>
-                <Button
-                  className="mt-4 w-full"
-                  onClick={() => checkout.mutate(plan.id)}
-                  disabled={checkout.isPending}
-                >
-                  {checkout.isPending ? <Loader2 className="size-4 animate-spin" /> : <CreditCard size={16} />}
-                  Upgrade
-                </Button>
-              </article>
+              <UpgradePlanCard
+                key={plan.id}
+                plan={plan}
+                currentQuota={quota}
+                pending={checkout.isPending}
+                onUpgrade={() => checkout.mutate(plan.id)}
+              />
             ))}
           </div>
         ) : (
@@ -447,6 +452,55 @@ export function ProfilePage() {
   );
 }
 
+function UpgradePlanCard({
+  plan,
+  currentQuota,
+  pending,
+  onUpgrade,
+}: {
+  plan: BillingPlan;
+  currentQuota: number | null;
+  pending: boolean;
+  onUpgrade: () => void;
+}) {
+  const isCurrent = currentQuota != null && plan.quotaBytes === currentQuota;
+  const isDowngrade = currentQuota != null && plan.quotaBytes < currentQuota;
+  const disabled = pending || isCurrent || isDowngrade;
+  const label = isCurrent ? "Current plan" : isDowngrade ? "Included" : "Upgrade";
+
+  return (
+    <article
+      className={
+        isCurrent
+          ? "rounded-lg border border-moss/30 bg-soft p-4"
+          : "rounded-lg border border-line bg-canvas p-4"
+      }
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-extrabold">{plan.name}</h3>
+          <p className="mt-1 text-sm text-muted">{plan.description || "More room for your files."}</p>
+        </div>
+        <strong className="rounded-full bg-soft px-2.5 py-1 text-xs text-moss">{plan.quotaGb} GB</strong>
+      </div>
+      <div className="mt-5">
+        <p className="text-2xl font-extrabold tracking-[-.03em]">{formatMoney(plan.price, plan.currency)}</p>
+        <p className="mt-1 text-xs text-muted">
+          {plan.durationDays > 0 ? `Valid for ${plan.durationDays} days` : "No expiry"}
+        </p>
+      </div>
+      <Button
+        className="mt-4 w-full"
+        variant={isCurrent || isDowngrade ? "outline" : "default"}
+        onClick={onUpgrade}
+        disabled={disabled}
+      >
+        {pending && !isCurrent && !isDowngrade ? <Loader2 className="size-4 animate-spin" /> : <CreditCard size={16} />}
+        {label}
+      </Button>
+    </article>
+  );
+}
 function ProfileField({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="rounded-lg border border-line bg-canvas px-3 py-2">
@@ -471,4 +525,15 @@ function formatMoney(amount: number, currency: string) {
     currency: currency || "VND",
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+function planFromQuota(quota: number | null) {
+  if (quota == null) return { name: "Unlimited" };
+  const gb = Math.round(quota / 1024 / 1024 / 1024);
+  if (gb <= 5) return { name: "Free" };
+  if (gb <= 20) return { name: "Starter 20GB" };
+  if (gb <= 50) return { name: "Pro 50GB" };
+  if (gb <= 100) return { name: "Business 100GB" };
+  if (gb >= 150) return { name: "Unlimited" };
+  return { name: `${gb}GB Plan` };
 }

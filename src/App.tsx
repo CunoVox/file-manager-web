@@ -51,12 +51,12 @@ export function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/billing/success" element={<BillingResultPage />} />
+        <Route path="/billing/cancel" element={<BillingResultPage />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<AppShell />}>
             <Route path="/files" element={<FilesPage />} />
             <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/billing/success" element={<BillingResultPage />} />
-            <Route path="/billing/cancel" element={<BillingResultPage />} />
             <Route path="/developer" element={<DeveloperPage />} />
             <Route
               path="/admin/dashboard"

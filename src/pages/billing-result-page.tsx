@@ -1,11 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "../components/ui/button";
+import { useAuthStore } from "../store/auth-store";
 
 export function BillingResultPage() {
   const location = useLocation();
+  const token = useAuthStore((state) => state.token);
   const success = location.pathname.includes("success");
   const Icon = success ? CheckCircle2 : XCircle;
+  const backTo = token ? "/profile" : "/login";
 
   return (
     <section className="mx-auto max-w-3xl p-5 md:p-10">
@@ -25,8 +28,8 @@ export function BillingResultPage() {
             : "No quota change was made. You can return to your profile and choose a plan again whenever you are ready."}
         </p>
         <div className="mt-6 flex justify-center">
-          <Link to="/profile">
-            <Button>Back to profile</Button>
+          <Link to={backTo}>
+            <Button>{token ? "Back to profile" : "Sign in to view quota"}</Button>
           </Link>
         </div>
       </div>

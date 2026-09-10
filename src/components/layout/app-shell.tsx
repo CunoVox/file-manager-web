@@ -2,11 +2,13 @@ import {
   Bell,
   ClipboardList,
   Code2,
+  CreditCard,
   Database,
   LayoutDashboard,
   Files,
   LogOut,
   Settings2,
+  Sparkles,
   Share2,
   ShieldCheck,
   Trash2,
@@ -146,15 +148,13 @@ export function AppShell() {
         </nav>
 
         <div className="border-t border-line p-4">
-          <div className="mb-3 flex items-center gap-2 rounded-lg border border-line bg-canvas px-3 py-2 text-xs">
-            {isAdmin ? (
+          {isAdmin && (
+            <div className="mb-3 flex items-center gap-2 rounded-lg border border-line bg-canvas px-3 py-2 text-xs">
               <ShieldCheck className="size-4 text-moss" />
-            ) : (
-              <UserRound className="size-4 text-moss" />
-            )}
-            <span className="font-bold">{roleLabel}</span>
-          </div>
-          <QuotaSummary user={user} />
+              <span className="font-bold">{roleLabel}</span>
+            </div>
+          )}
+          <PlanSummary user={user} />
           <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
             <LogOut size={16} /> Sign Out
           </Button>
@@ -168,10 +168,12 @@ export function AppShell() {
               <Brand />
             </div>
             <div className="ml-auto flex items-center gap-3">
-              <span className="hidden items-center gap-2 rounded-full border border-line bg-canvas px-3 py-1.5 text-xs font-bold text-muted sm:inline-flex">
-                {isAdmin ? <ShieldCheck size={14} /> : <UserRound size={14} />}
-                {roleLabel}
-              </span>
+              {isAdmin && (
+                <span className="hidden items-center gap-2 rounded-full border border-line bg-canvas px-3 py-1.5 text-xs font-bold text-muted sm:inline-flex">
+                  <ShieldCheck size={14} />
+                  {roleLabel}
+                </span>
+              )}
               <NavLink
                 to="/profile"
                 className="grid size-9 place-items-center rounded-lg text-muted transition hover:bg-canvas hover:text-ink"
@@ -345,13 +347,27 @@ function ProfileCard({
   );
 }
 
-function QuotaSummary({ user }: { user: ReturnType<typeof useAuthStore.getState>["user"] }) {
+function PlanSummary({ user }: { user: ReturnType<typeof useAuthStore.getState>["user"] }) {
   const used = user?.storageUsedBytes ?? 0;
   const quota = user?.effectiveStorageQuotaBytes ?? null;
   const percent = quota ? Math.min(100, Math.round((used / quota) * 100)) : 0;
+  const plan = planFromQuota(quota);
+
   return (
-    <div className="mb-3 rounded-lg border border-line bg-canvas px-3 py-2 text-xs">
-      <div className="flex items-center justify-between gap-2">
+    <div className="mb-3 rounded-lg border border-line bg-canvas p-3 text-xs">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <span className="block font-mono text-[10px] uppercase tracking-[.16em] text-muted">
+            Current plan
+          </span>
+          <strong className="mt-1 block truncate text-sm text-ink">{plan.name}</strong>
+        </div>
+        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-soft text-moss">
+          {plan.name === "Free" ? <CreditCard size={15} /> : <Sparkles size={15} />}
+        </span>
+      </div>
+
+      <div className="mt-3 flex items-center justify-between gap-2">
         <span className="font-bold text-muted">Storage</span>
         <span className="font-bold">
           {formatSize(used)} / {quota == null ? "Unlimited" : formatSize(quota)}
@@ -362,8 +378,26 @@ function QuotaSummary({ user }: { user: ReturnType<typeof useAuthStore.getState>
           <div className="h-full rounded-full bg-moss" style={{ width: `${percent}%` }} />
         </div>
       )}
+      <NavLink
+        to="/profile#upgrade-storage"
+        className="mt-3 inline-flex h-8 w-full items-center justify-center gap-2 rounded-lg bg-moss px-3 text-xs font-extrabold text-white transition hover:bg-moss/90"
+      >
+        <CreditCard size={14} />
+        Upgrade plan
+      </NavLink>
     </div>
   );
+}
+
+function planFromQuota(quota: number | null) {
+  if (quota == null) return { name: "Unlimited" };
+  const gb = Math.round(quota / 1024 / 1024 / 1024);
+  if (gb <= 5) return { name: "Free" };
+  if (gb <= 20) return { name: "Starter 20GB" };
+  if (gb <= 50) return { name: "Pro 50GB" };
+  if (gb <= 100) return { name: "Business 100GB" };
+  if (gb >= 150) return { name: "Unlimited" };
+  return { name: `${gb}GB Plan` };
 }
 
 function Brand({ compact = false }: { compact?: boolean }) {
